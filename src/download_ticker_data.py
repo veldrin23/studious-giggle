@@ -19,20 +19,20 @@ import matplotlib.pyplot as plt
 # import httpx
 
 
-with open("../config/binance_secret_key.txt") as f:
-    api_secret = f.readline()
+# with open("../config/binance_secret_key.txt") as f:
+#     api_secret = f.readline()
 
-with open("../config/binance_api_key.txt") as f:
-    api_key = f.readline()
+# with open("../config/binance_api_key.txt") as f:
+#     api_key = f.readline()
 
-client = Client(api_key, api_secret)
+# client = Client(api_key, api_secret)
 
 
-with open("../config/tickers.txt") as f:
-    bitcoin_tickers = f.read().splitlines() 
+# with open("../config/tickers.txt") as f:
+#     bitcoin_tickers = f.read().splitlines() 
 
-with open("../config/tickert_to_ignore.txt") as f:
-	ignore_tickers = f.read().splitlines() 
+# with open("../config/tickert_to_ignore.txt") as f:
+# 	ignore_tickers = f.read().splitlines() 
 
 
 def convert_unix_time_to_date(unix_time):
@@ -51,7 +51,7 @@ def create_filename_date(datetime_object):
     return "_".join([year, month, day])
     
 
-def gather_coin_date(ticker, from_date, frequency = "daily"):
+def gather_coin_date(client, ticker, from_date, frequency = "daily"):
     colnames = ["unix",
                 "Open",
                 "High",
@@ -78,11 +78,11 @@ def gather_coin_date(ticker, from_date, frequency = "daily"):
     return klines_df
 
 
-def download_and_save_ticker_data(bitcoin_tickers, from_date, target_folder = "./price_data", frequency = "daily"):
+def download_and_save_ticker_data(client, bitcoin_tickers, from_date, target_folder = "./price_data", frequency = "daily"):
     
     out_df = None
     for bitcoin_ticker in tqdm(bitcoin_tickers):
-        df = gather_coin_date(bitcoin_ticker, from_date, frequency)
+        df = gather_coin_date(client, bitcoin_ticker, from_date, frequency)
         if out_df is None:
             out_df = df
         else:
@@ -93,8 +93,8 @@ def download_and_save_ticker_data(bitcoin_tickers, from_date, target_folder = ".
 
 
 
-bitc_data = download_and_save_ticker_data(bitcoin_tickers, from_date= "1 Jan, 2021", frequency="hourly")
-bitc_data = bitc_data.set_index(["date", "ticker"])
+# bitc_data = download_and_save_ticker_data(bitcoin_tickers, from_date= "1 Jan, 2021", frequency="hourly")
+# bitc_data = bitc_data.set_index(["date", "ticker"])
 
 
-bitc_data.to_csv("../data/coin_hourly_ticker_data.csv")
+# bitc_data.to_csv("../data/coin_hourly_ticker_data.csv")

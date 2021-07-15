@@ -130,4 +130,4 @@ dmypy.json
 
 config/binance_secret_key.txt
 config/binance_api_key.txt
-data
+data/
