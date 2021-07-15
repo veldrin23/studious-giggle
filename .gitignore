@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+config/binance_secret_key.txt
+config/binance_api_key.txt
+data
