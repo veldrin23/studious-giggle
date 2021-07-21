@@ -1,51 +1,140 @@
-import numpy as np
-from functools import lru_cache
+class GenerateAlphas:
+    __refs__ = defaultdict(list)
+    def __init__(self, coin_df):
+        
+        self.coin_data = coin_df
+        self.close = coin_df.loc[:,["close"]].reset_index().pivot(index="date", columns="ticker").close
+        self.open = coin_df.loc[:,["open"]].reset_index().pivot(index="date", columns="ticker").open
+        self.volume = coin_df.loc[:,["volume"]].reset_index().pivot(index="date", columns="ticker").volume
+        self.low = coin_df.loc[:,["low"]].reset_index().pivot(index="date", columns="ticker").low
+        self.high = coin_df.loc[:,["high"]].reset_index().pivot(index="date", columns="ticker").high
+        self.returns = coin_df.loc[:,["returns"]].reset_index().pivot(index="date", columns="ticker").returns
+        
+        self.combined_factors = None
+        
+    def rename_factor_columns(self, factor, coin_data, factor_no):
+#         columns=[(x, f"factor_{factor_no}") for x in pd.unique(coin_data.index.get_level_values(1))]
+        columns=[(f"factor_{factor_no}", x) for x in pd.unique(coin_data.index.get_level_values(1))]
+        factor.columns=pd.MultiIndex.from_tuples(columns)
+        return factor
 
-
-def factor_001(coin_data):
-    """
-    Alpha#1: (rank(Ts_ArgMax(SignedPower(((returns < 0) ? stddev(returns, 20) : close), 2.), 5)) - 0.5) 
-    where       ts_argmax(x, d) = which day ts_max(x, d) occurred on
-    and         signedpower(x, a) = x^a 
-
-    """
-    returns = coin_data.loc[:,["returns"]].reset_index().pivot(index="date", columns="ticker")
-    returns[returns < 0] = returns.rolling(window=20).std(skipna=False)
-    ts_argmax = np.square(returns).rolling(window=5).apply(np.argmax) + 1
-    factor = ts_argmax.rank(axis='columns', pct=True) - 0.5
-    return factor
-
-
-def factor_002(coin_data):
-    """
-    Alpha#2: (-1 * correlation(rank(delta(log(volume), 2)), rank(((close - open) / open)), 6))
-    """
-    volume = coin_data.loc[:,["volume"]].reset_index().pivot(index="date", columns="ticker").volume
-    open_ = coin_data.loc[:,["open"]].reset_index().pivot(index="date", columns="ticker").open
-    close = coin_data.loc[:,["close"]].reset_index().pivot(index="date", columns="ticker").close
     
-    temp_1 = np.log(volume).diff(2)
-    temp_1_ranked = temp_1.rank(axis="columns", pct=True)
+    extract_fields = lambda coin_data, fields: coin_data.loc[:,field].reset_index().pivot(index="date", columns="ticker").loc[:,field]
     
-    temp_2 = (close - open_)/open_
-    temp_2_ranked = temp_2.rank(axis="columns", pct=True)
-    
-    factor = -1 * temp_1_ranked.rolling(window=6).corr(temp_2_ranked)
-    
-    return factor
+    rolling_rank = lambda data: data.size - data.argsort().argsort()[-1]
 
 
 
-def factor_003(coin_data):
-    """
-    Alpha#3: (-1 * correlation(rank(open), rank(volume), 10))
-    """
-    open_ = coin_data.loc[:,["open"]].reset_index().pivot(index="date", columns="ticker").open
-    volume = coin_data.loc[:,["volume"]].reset_index().pivot(index="date", columns="ticker").volume
+    def run_factors(self, factors_to_run = "all"):
+        af_dict = {
+            "factor_001": self.generate_factor_001,
+            "factor_002": self.generate_factor_002,
+            "factor_003": self.generate_factor_003,
+            "factor_004": self.generate_factor_004
+        }
+        
+        if factors_to_run == "all":
+            for key, value in af_dict.items():
+                print(f"Running {key}")
+                value()
+        
+        else:
+            if type(factors_to_run) == list:
+                for factor_to_run in factors_to_run:
+                    print(f"Running {factor_to_run}")
+                    af_dict["factor_"+ factor_to_run]()
+            else:
+                print(f"Running {factors_to_run}")
+                af_dict["factor_"+ factors_to_run]()
     
-    ranked_volume = volume.rank(axis="rows")
-    ranked_open = open_.rank(axis="rows")
+
+                
+                
+    def merge_factor(self, factor):
+        if self.combined_factors is None:
+            self.combined_factors = factor
+        else:
+            self.combined_factors = self.combined_factors.join(factor)
+        
+        
+        
     
-    factor = -1 * ranked_volume.rolling(window=10).corr(ranked_open)
+    def generate_factor_001(self):
+        """
+        Alpha#1: (rank(Ts_ArgMax(SignedPower(((returns < 0) ? stddev(returns, 20) : close), 2.), 5)) - 0.5) 
+        where       ts_argmax(x, d) = which day ts_max(x, d) occurred on
+        and         signedpower(x, a) = x^a 
+        """
+        returns_temp = self.returns.copy()
+        returns_temp[returns_temp < 0] = returns_temp.rolling(window=20).std(skipna=False)
+        ts_argmax = np.square(returns_temp).rolling(window=5).apply(np.argmax) + 1
+        factor = ts_argmax.rank(axis='rows', pct=True) - 0.5
+
+        factor = self.rename_factor_columns(factor, self.coin_data, "001")#.dropna().apply(zscore)
+        
+        self.merge_factor(factor)
+        
+#         factor.columns = [c[0] for c in factor.columns]
+#         self.factor_001 = factor
+            
     
-    return factor
+    def generate_factor_002(self):
+        """
+        Alpha#2: (-1 * correlation(rank(delta(log(volume), 2)), rank(((close - open) / open)), 6))
+        """
+        volume_temp = self.volume
+        open_temp = self.open
+        close_temp = self.close
+
+        temp_1 = np.log(volume_temp).diff(2)
+        temp_1_ranked = temp_1.rank(axis="rows", pct=True)
+
+        temp_2 = (close_temp - open_temp)/open_temp
+        temp_2_ranked = temp_2.rank(axis="rows", pct=True)
+
+        factor = -1 * temp_1_ranked.rolling(window=6).corr(temp_2_ranked)
+
+        factor = self.rename_factor_columns(factor, self.coin_data, "002")#.dropna().apply(zscore)
+        
+        self.merge_factor(factor)
+        
+#         factor.columns = [c[0] for c in factor.columns]
+#         self.factor_002 = factor
+    
+    def generate_factor_003(self):
+        """
+        Alpha#3: (-1 * correlation(rank(open), rank(volume), 10))
+        """
+        temp_open = self.open
+        temp_volume = self.volume
+        
+        ranked_volume = temp_volume.rank(axis="rows")
+        ranked_open = temp_open.rank(axis="rows")
+
+        factor = -1 * ranked_volume.rolling(window=10).corr(ranked_open)
+
+        factor = self.rename_factor_columns(factor, coin_data, "003")#.dropna().apply(zscore)
+
+        self.merge_factor(factor)
+        
+#         factor.columns = [c[0] for c in factor.columns]
+#         self.factor_003 = factor
+        
+    def generate_factor_004(self):
+        """
+        Alpha#4: (-1 * Ts_Rank(rank(low), 9)) 
+        """
+        temp_low = self.low
+        
+        rolling_rank = lambda data: data.size - data.argsort().argsort()[-1]
+
+        
+        factor = temp_low.rank(axis="rows").rolling(window=9).apply(rolling_rank)
+        
+        factor = self.rename_factor_columns(factor, self.coin_data, "004")#.dropna().apply(zscore)
+        
+        self.merge_factor(factor)
+        
+#         factor.columns = [c[0] for c in factor.columns]
+#         self.factor_004 = factor
+        
