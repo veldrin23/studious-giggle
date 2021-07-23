@@ -6,7 +6,7 @@ import time
 import sys
 from src.download_ticker_data import gather_coin_data, download_ticker_data, get_tickers
 from src.db_tools import create_table, insert_dataframe, get_latest_date
-
+import pytz
 
 if __name__ == "__main__":
     """
@@ -29,6 +29,7 @@ if __name__ == "__main__":
 
     binance_client = Client(api_key, api_secret)
 
+    tz = pytz.timezone("Australia/Sydney")
     while True:
 
         try:
@@ -37,18 +38,17 @@ if __name__ == "__main__":
             next_hour = max_date + datetime.timedelta(hours = 1)             
         except sqlite3.OperationalError:
             print("./data/crypto.db does not exist yet, downloading data for past 31 days")
-            max_date = datetime.datetime.today()  
+            max_date = datetime.datetime.today(tz)  
             prev_day = max_date + datetime.timedelta(days = -31)
             next_hour = max_date + datetime.timedelta(minutes = -1) 
         
 
 
 
-        if datetime.datetime.today() > next_hour:
+        if datetime.datetime.today(tz) > next_hour:
 
-            print(datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
 
-            print("\nDownloading next batch\n")
+            print("\nDownloading next batch\n", datetime.datetime.today(tz).strftime("%Y-%m-%d %H:%M:%S"))
             coin_data = download_ticker_data(binance_client, coin_names, str(prev_day), frequency = "hourly")
             coin_data = coin_data.set_index(["date", "ticker"]).reset_index()
 
