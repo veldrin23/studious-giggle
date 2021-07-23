@@ -19,11 +19,11 @@ import matplotlib.pyplot as plt
 # import httpx
 
 
-# with open("../config/binance_secret_key.txt") as f:
+# with open("./config/binance_secret_key.txt") as f:
 #     api_secret = f.readline()
 
-# with open("../config/binance_api_key.txt") as f:
-#     api_key = f.readline()
+# with open("./config/binance_api_key.txt") as f:
+    # api_key = f.readline()
 
 # client = Client(api_key, api_secret)
 
@@ -51,7 +51,7 @@ def create_filename_date(datetime_object):
     return "_".join([year, month, day])
     
 
-def gather_coin_date(client, ticker, from_date, frequency = "daily"):
+def gather_coin_data(client, ticker, from_date, frequency = "daily"):
     colnames = ["unix",
                 "Open",
                 "High",
@@ -78,11 +78,11 @@ def gather_coin_date(client, ticker, from_date, frequency = "daily"):
     return klines_df
 
 
-def download_and_save_ticker_data(client, bitcoin_tickers, from_date, target_folder = "./price_data", frequency = "daily"):
+def download_ticker_data(client, bitcoin_tickers, from_date, frequency = "daily"):
     
     out_df = None
     for bitcoin_ticker in tqdm(bitcoin_tickers):
-        df = gather_coin_date(client, bitcoin_ticker, from_date, frequency)
+        df = gather_coin_data(client, bitcoin_ticker, from_date, frequency)
         if out_df is None:
             out_df = df
         else:
@@ -90,6 +90,19 @@ def download_and_save_ticker_data(client, bitcoin_tickers, from_date, target_fol
 
     
     return out_df
+
+
+def get_tickers():
+    with open("./config/tickers.txt") as f:
+        bitcoin_tickers = f.read().splitlines() 
+
+    with open("./config/tickert_to_ignore.txt") as f:
+        ignore_tickers = f.read().splitlines() 
+
+    out = [b for b in bitcoin_tickers if b not in ignore_tickers]
+
+    return out
+
 
 
 

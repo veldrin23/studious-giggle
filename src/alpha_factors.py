@@ -1,5 +1,9 @@
+
+import numpy as np
+import pandas as pd
+
 class GenerateAlphas:
-    __refs__ = defaultdict(list)
+#     __refs__ = defaultdict(list)
     def __init__(self, coin_df):
         
         self.coin_data = coin_df
@@ -9,6 +13,7 @@ class GenerateAlphas:
         self.low = coin_df.loc[:,["low"]].reset_index().pivot(index="date", columns="ticker").low
         self.high = coin_df.loc[:,["high"]].reset_index().pivot(index="date", columns="ticker").high
         self.returns = coin_df.loc[:,["returns"]].reset_index().pivot(index="date", columns="ticker").returns
+        self.trade_count = coin_df.loc[:,["trade_count"]].reset_index().pivot(index="date", columns="ticker").trade_count
         
         self.combined_factors = None
         
@@ -30,7 +35,8 @@ class GenerateAlphas:
             "factor_001": self.generate_factor_001,
             "factor_002": self.generate_factor_002,
             "factor_003": self.generate_factor_003,
-            "factor_004": self.generate_factor_004
+            "factor_004": self.generate_factor_004,
+            "factor_nvp": self.generate_factor_nvp
         }
         
         if factors_to_run == "all":
@@ -113,7 +119,7 @@ class GenerateAlphas:
 
         factor = -1 * ranked_volume.rolling(window=10).corr(ranked_open)
 
-        factor = self.rename_factor_columns(factor, coin_data, "003")#.dropna().apply(zscore)
+        factor = self.rename_factor_columns(factor, self.coin_data, "003")#.dropna().apply(zscore)
 
         self.merge_factor(factor)
         
@@ -137,4 +143,14 @@ class GenerateAlphas:
         
 #         factor.columns = [c[0] for c in factor.columns]
 #         self.factor_004 = factor
+        
+    def generate_factor_nvp(self):
+        nvp = self.volume * self.open / self.trade_count
+        factor = nvp#.rank(axis="columns", pct=True)#.apply(zscore)
+        
+        factor = self.rename_factor_columns(factor, self.coin_data, "nvp")
+        
+        self.merge_factor(factor)
+        
+        
         
