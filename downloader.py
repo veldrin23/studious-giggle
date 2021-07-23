@@ -33,7 +33,7 @@ if __name__ == "__main__":
     while True:
 
         try:
-            max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0])
+            max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0], utc=True)
             prev_day = max_date + datetime.timedelta(days = -1)
             next_hour = max_date + datetime.timedelta(hours = 1)             
         except sqlite3.OperationalError:
