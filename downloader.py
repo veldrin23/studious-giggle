@@ -33,14 +33,16 @@ if __name__ == "__main__":
 
         try:
             max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0])
+            prev_day = max_date + datetime.timedelta(days = -1)
+            next_hour = max_date + datetime.timedelta(hours = 1)             
         except sqlite3.OperationalError:
+            print("./data/crypto.db does not exist yet, downloading data for past 31 days")
             max_date = datetime.datetime.today()  
             prev_day = max_date + datetime.timedelta(days = -31)
             next_hour = max_date + datetime.timedelta(minutes = -1) 
         
 
-        prev_day = max_date + datetime.timedelta(days = -1)
-        next_hour = max_date + datetime.timedelta(hours = 1) 
+
 
         if datetime.datetime.today() > next_hour:
 
@@ -59,5 +61,4 @@ if __name__ == "__main__":
 
         else:
             sys.stdout.write('.')
-            time.sleep(60
-                )
+            time.sleep(60)
