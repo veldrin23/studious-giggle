@@ -34,13 +34,12 @@ if __name__ == "__main__":
         try:
             max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0])
         except sqlite3.OperationalError:
-            max_date = datetime.datetime.today()  + datetime.timedelta(hours = -2)
-
-        prev_day = max_date + datetime.timedelta(days = -1)
-        next_hour = max_date + datetime.timedelta(hours = 1) #+ datetime.timedelta(minutes = 1) # only download data after one minute past hour
+            max_date = datetime.datetime.today()  
+            prev_day = max_date + datetime.timedelta(days = -31)
+            next_hour = max_date + datetime.timedelta(minutes = -1) #+ datetime.timedelta(minutes = 1) # only download data after one minute past hour
         
 
-        now = datetime.datetime.today()#.strftime("%H:%M:%S")
+
 
         if datetime.datetime.today() > next_hour:
 
