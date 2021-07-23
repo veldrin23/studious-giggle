@@ -21,9 +21,9 @@ if __name__ == "__main__":
     conn = sqlite3.connect("./data/crypto.db")
 
     with open("./config/binance_secret_key.txt") as f:
-        api_secret = f.readline()
+        api_secret = f.readline().strip("\n")
     with open("./config/binance_api_key.txt") as f:
-        api_key = f.readline()
+        api_key = f.readline().strip("\n")
     coin_names = get_tickers()
 
     binance_client = Client(api_key, api_secret)
