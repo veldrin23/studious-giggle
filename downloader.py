@@ -24,21 +24,24 @@ if __name__ == "__main__":
         api_secret = f.readline().strip("\n")
     with open("./config/binance_api_key.txt") as f:
         api_key = f.readline().strip("\n")
+
     coin_names = get_tickers()
 
     binance_client = Client(api_key, api_secret)
 
     while True:
+        
+        try:
+            max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0])
+        except sqlite3.OperationalError:
+            max_date = datetime.datetime.today()  
 
-        max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0])
         prev_day = max_date + datetime.timedelta(days = -1)
         next_hour = max_date + datetime.timedelta(hours = 1) #+ datetime.timedelta(minutes = 1) # only download data after one minute past hour
         
-        print(f"{max_date=}")
+
         now = datetime.datetime.today()#.strftime("%H:%M:%S")
 
-        print(f"{now=}")
-        print(f"{next_hour=}")
         if datetime.datetime.today() > next_hour:
 
             print(datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
