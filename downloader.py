@@ -36,10 +36,11 @@ if __name__ == "__main__":
         except sqlite3.OperationalError:
             max_date = datetime.datetime.today()  
             prev_day = max_date + datetime.timedelta(days = -31)
-            next_hour = max_date + datetime.timedelta(minutes = -1) #+ datetime.timedelta(minutes = 1) # only download data after one minute past hour
+            next_hour = max_date + datetime.timedelta(minutes = -1) 
         
 
-
+        prev_day = max_date + datetime.timedelta(days = -1)
+        next_hour = max_date + datetime.timedelta(hours = 1) 
 
         if datetime.datetime.today() > next_hour:
 
@@ -58,4 +59,5 @@ if __name__ == "__main__":
 
         else:
             sys.stdout.write('.')
-            time.sleep(60)
+            time.sleep(60
+                )
