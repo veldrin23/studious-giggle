@@ -30,11 +30,11 @@ if __name__ == "__main__":
     binance_client = Client(api_key, api_secret)
 
     while True:
-        
+
         try:
             max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0])
         except sqlite3.OperationalError:
-            max_date = datetime.datetime.today()  
+            max_date = datetime.datetime.today()  + datetime.timedelta(hours = -2)
 
         prev_day = max_date + datetime.timedelta(days = -1)
         next_hour = max_date + datetime.timedelta(hours = 1) #+ datetime.timedelta(minutes = 1) # only download data after one minute past hour
