@@ -38,17 +38,17 @@ if __name__ == "__main__":
             next_hour = max_date + datetime.timedelta(hours = 1)             
         except sqlite3.OperationalError:
             print("./data/crypto.db does not exist yet, downloading data for past 31 days")
-            max_date = datetime.datetime.today(tz)  
+            max_date = datetime.datetime.now(tz)  
             prev_day = max_date + datetime.timedelta(days = -31)
             next_hour = max_date + datetime.timedelta(minutes = -1) 
         
 
 
 
-        if datetime.datetime.today(tz) > next_hour:
+        if datetime.datetime.now(tz) > next_hour:
 
 
-            print("\nDownloading next batch\n", datetime.datetime.today(tz).strftime("%Y-%m-%d %H:%M:%S"))
+            print("\nDownloading next batch\n", datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"))
             coin_data = download_ticker_data(binance_client, coin_names, str(prev_day), frequency = "hourly")
             coin_data = coin_data.set_index(["date", "ticker"]).reset_index()
 
