@@ -6,21 +6,23 @@ class GenerateAlphas:
 #     __refs__ = defaultdict(list)
     def __init__(self, coin_df):
         
-        self.coin_data = coin_df
-        # print(self.coin_data.columns)
-        # print(self.coin_data.loc[:,["close", "date", "ticker"]].head(10))
-        self.close = coin_df.loc[:,["close", "date", "ticker"]].pivot(index="date", columns="ticker").close
-        self.open = coin_df.loc[:,["open", "date", "ticker"]].pivot(index="date", columns="ticker").open
-        self.volume = coin_df.loc[:,["volume_1", "date", "ticker"]].pivot(index="date", columns="ticker").volume_1
-        self.low = coin_df.loc[:,["low", "date", "ticker"]].pivot(index="date", columns="ticker").low
-        self.high = coin_df.loc[:,["high", "date", "ticker"]].pivot(index="date", columns="ticker").high
-        # self.returns = coin_df.loc[:,["returns", "date", "ticker"]].pivot(index="date", columns="ticker").returns
-        self.trade_count = coin_df.loc[:,["trade_count", "date", "ticker"]].pivot(index="date", columns="ticker").trade_count
-        # print(self.open.head(5))
+
+        self.coin_data = coin_df[:-1]
+        self.close = coin_df.loc[:,["close"]].reset_index().pivot(index="date", columns="ticker").close.astype(float)
+        self.open = coin_df.loc[:,["open"]].reset_index().pivot(index="date", columns="ticker").open.astype(float)
+        self.volume = coin_df.loc[:,["volume_1"]].reset_index().pivot(index="date", columns="ticker").volume_1.astype(float)
+        self.low = coin_df.loc[:,["low"]].reset_index().pivot(index="date", columns="ticker").low.astype(float)
+        self.high = coin_df.loc[:,["high"]].reset_index().pivot(index="date", columns="ticker").high.astype(float)
+        self.trade_count = coin_df.loc[:,["trade_count"]].reset_index().pivot(index="date", columns="ticker").trade_count.astype(float)
+
+        self.returns = self.close.pct_change()
+
         self.combined_factors = None
         
     def rename_factor_columns(self, factor, coin_data, factor_no):
 #         columns=[(x, f"factor_{factor_no}") for x in pd.unique(coin_data.index.get_level_values(1))]
+        # print("aaa")
+        # print(coin_data.head(5))
         columns=[(f"factor_{factor_no}", x) for x in pd.unique(coin_data.index.get_level_values(1))]
         factor.columns=pd.MultiIndex.from_tuples(columns)
         return factor
@@ -73,6 +75,7 @@ class GenerateAlphas:
         where       ts_argmax(x, d) = which day ts_max(x, d) occurred on
         and         signedpower(x, a) = x^a 
         """
+        # print("aa")
         returns_temp = self.returns.copy()
         returns_temp[returns_temp < 0] = returns_temp.rolling(window=20).std(skipna=False)
         ts_argmax = np.square(returns_temp).rolling(window=5).apply(np.argmax) + 1
@@ -81,6 +84,7 @@ class GenerateAlphas:
         factor = self.rename_factor_columns(factor, self.coin_data, "001")#.dropna().apply(zscore)
         
         self.merge_factor(factor)
+        # return 1
         
 #         factor.columns = [c[0] for c in factor.columns]
 #         self.factor_001 = factor

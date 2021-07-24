@@ -22,6 +22,9 @@ if __name__ == "__main__":
 
 	coin_data["date"] = pd.to_datetime(coin_data["date"])
 	max_coin_date = max(coin_data["date"])
+	
+	coin_data.set_index(["date", "ticker"], inplace=True)
+	
 
 	# latest alpha factor upload
 	try:
@@ -31,9 +34,9 @@ if __name__ == "__main__":
 	except sqlite3.OperationalError:
 		print("\n\nNo alpha factors created yet\n\n")
 
-		print(coin_data.columns)
+
 		alphas = GenerateAlphas(coin_data)
-		print("AAAA")
+
 		alphas.run_factors("all")
 
 		print(alphas.combined_factors.shape)
