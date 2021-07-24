@@ -12,16 +12,32 @@ if __name__ == "__main__":
 	cur = conn.cursor()
 	cur.execute(sql)
 
-
 	# latest value upload
 	coin_data = pd.DataFrame(cur.fetchall())
+
 	names = list(map(lambda x: x[0].lower(), cur.description))
+
 	coin_data.columns  = names
+
+
 	coin_data["date"] = pd.to_datetime(coin_data["date"])
 	max_coin_date = max(coin_data["date"])
 
 	# latest alpha factor upload
-	sql = "select max(date) from alpha_data1"
+	try:
+		sql = "select max(date) from alpha_data"
+		cur.execute(sql).fetchall()
+
+	except sqlite3.OperationalError:
+		print("\n\nNo alpha factors created yet\n\n")
+
+		print(coin_data.columns)
+		alphas = GenerateAlphas(coin_data)
+		print("AAAA")
+		alphas.run_factors("all")
+
+		print(alphas.combined_factors.shape)
+
 
 
 

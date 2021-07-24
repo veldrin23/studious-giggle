@@ -7,14 +7,16 @@ class GenerateAlphas:
     def __init__(self, coin_df):
         
         self.coin_data = coin_df
-        self.close = coin_df.loc[:,["close"]].reset_index().pivot(index="date", columns="ticker").close
-        self.open = coin_df.loc[:,["open"]].reset_index().pivot(index="date", columns="ticker").open
-        self.volume = coin_df.loc[:,["volume"]].reset_index().pivot(index="date", columns="ticker").volume
-        self.low = coin_df.loc[:,["low"]].reset_index().pivot(index="date", columns="ticker").low
-        self.high = coin_df.loc[:,["high"]].reset_index().pivot(index="date", columns="ticker").high
-        self.returns = coin_df.loc[:,["returns"]].reset_index().pivot(index="date", columns="ticker").returns
-        self.trade_count = coin_df.loc[:,["trade_count"]].reset_index().pivot(index="date", columns="ticker").trade_count
-        
+        # print(self.coin_data.columns)
+        # print(self.coin_data.loc[:,["close", "date", "ticker"]].head(10))
+        self.close = coin_df.loc[:,["close", "date", "ticker"]].pivot(index="date", columns="ticker").close
+        self.open = coin_df.loc[:,["open", "date", "ticker"]].pivot(index="date", columns="ticker").open
+        self.volume = coin_df.loc[:,["volume_1", "date", "ticker"]].pivot(index="date", columns="ticker").volume_1
+        self.low = coin_df.loc[:,["low", "date", "ticker"]].pivot(index="date", columns="ticker").low
+        self.high = coin_df.loc[:,["high", "date", "ticker"]].pivot(index="date", columns="ticker").high
+        # self.returns = coin_df.loc[:,["returns", "date", "ticker"]].pivot(index="date", columns="ticker").returns
+        self.trade_count = coin_df.loc[:,["trade_count", "date", "ticker"]].pivot(index="date", columns="ticker").trade_count
+        # print(self.open.head(5))
         self.combined_factors = None
         
     def rename_factor_columns(self, factor, coin_data, factor_no):
