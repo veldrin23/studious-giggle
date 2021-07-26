@@ -8,16 +8,10 @@ from src.download_ticker_data import gather_coin_data, download_ticker_data, get
 from src.db_tools import create_table, insert_dataframe, get_latest_date
 import pytz
 
-if __name__ == "__main__":
-    """
 
-    skryf documentation, ANDRE!!!
-
-    """
-
-
-
-
+def main():
+    #/home/ubuntu/anaconda3/envs/crypto_jones/bin/python
+    time.sleep(5)
     conn = sqlite3.connect("./data/crypto.db")
 
     with open("./config/binance_secret_key.txt") as f:
@@ -30,8 +24,9 @@ if __name__ == "__main__":
     binance_client = Client(api_key, api_secret)
 
     tz = pytz.timezone("Australia/Sydney")
-    while True:
 
+    coin_data_updated = False
+    while not coin_data_updated:
         try:
             max_date = pd.to_datetime(get_latest_date(conn, "coin_data")[0][0], utc=True)
             prev_day = max_date + datetime.timedelta(days = -1)
@@ -48,6 +43,8 @@ if __name__ == "__main__":
         if datetime.datetime.now(tz) > next_hour:
 
 
+
+
             print("\nDownloading next batch\n", datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S"))
             coin_data = download_ticker_data(binance_client, coin_names, str(prev_day), frequency = "hourly")
             coin_data = coin_data.set_index(["date", "ticker"]).reset_index()
@@ -56,9 +53,24 @@ if __name__ == "__main__":
 
             print(coin_data.shape)
             insert_dataframe(conn, "coin_data", coin_data, create_if_dont_exist=True)
+            coin_data_updated = True
 
 
 
         else:
             sys.stdout.write('.')
-            time.sleep(60)
+            time.sleep(1)
+
+
+
+if __name__ == "__main__":
+    main()
+    """
+
+    skryf documentation, ANDRE!!!
+
+    """
+
+
+
+
