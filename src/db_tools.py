@@ -63,7 +63,7 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
             create_table(conn, table_name, df_field_types, primary_key=["date", "ticker"])
 
     inserted = 0
-    for i, r in tqdm(df.iterrows()):
+    for i, r in df.iterrows():
         sql = f"""INSERT OR REPLACE INTO {table_name}(date, ticker, open, high, low, close, volume_1, volume_2, trade_count, unknown_1, unknown_2, unknown_3 ,unknown_4)  
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);
         """
@@ -78,7 +78,7 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
         	print(err)
             # print(str(err) == f"no such table: {table_name}")
     conn.commit()
-    print(f"Inserted {inserted} rows into {table_name}")
+    # print(f"Inserted {inserted} rows into {table_name}")
     cur.close()
         
 

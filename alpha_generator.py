@@ -57,9 +57,3 @@ if __name__ == "__main__":
 
 
 
-	# print(coin_data.columns)
-
-	alphas = GenerateAlphas(coin_data)
-	alphas.run_factors("all")
-
-	print(alphas.combined_factors)

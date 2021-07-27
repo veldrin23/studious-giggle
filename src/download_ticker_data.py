@@ -13,28 +13,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# import project_helper
-# import helper
-# import asyncio
-# import httpx
-
-
-# with open("./config/binance_secret_key.txt") as f:
-#     api_secret = f.readline()
-
-# with open("./config/binance_api_key.txt") as f:
-    # api_key = f.readline()
-
-# client = Client(api_key, api_secret)
-
-
-# with open("../config/tickers.txt") as f:
-#     bitcoin_tickers = f.read().splitlines() 
-
-# with open("../config/tickert_to_ignore.txt") as f:
-# 	ignore_tickers = f.read().splitlines() 
-
-
 def convert_unix_time_to_date(unix_time):
     s = unix_time / 1000.0
     return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f')
@@ -68,6 +46,7 @@ def gather_coin_data(client, ticker, from_date, frequency = "daily"):
     freq_dict = {"daily": Client.KLINE_INTERVAL_1DAY,
             "hourly": Client.KLINE_INTERVAL_1HOUR}
     
+    
     klines = client.get_historical_klines(ticker, freq_dict[frequency], from_date)
     klines_df = pd.DataFrame(klines, columns = colnames)
     
@@ -81,7 +60,7 @@ def gather_coin_data(client, ticker, from_date, frequency = "daily"):
 def download_ticker_data(client, bitcoin_tickers, from_date, frequency = "daily"):
     
     out_df = None
-    for bitcoin_ticker in tqdm(bitcoin_tickers):
+    for bitcoin_ticker in bitcoin_tickers:
         df = gather_coin_data(client, bitcoin_ticker, from_date, frequency)
         if out_df is None:
             out_df = df
