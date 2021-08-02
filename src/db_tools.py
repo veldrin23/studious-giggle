@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd
 from tqdm import tqdm
-
+import sys
 
 def create_df_field_types_dict(df):
        
@@ -25,9 +25,6 @@ def create_df_field_types_dict(df):
     return out
     
 
-
-
-
 def create_table(conn: sqlite3.Connection, 
                  table_name: str, 
                  fields: dict, 
@@ -35,7 +32,7 @@ def create_table(conn: sqlite3.Connection,
     
     sql = f"""
         CREATE TABLE {table_name} (
-        {", ".join([f"{k} {v} NOT NULL" for k, v in fields.items()])}, 
+        {", ".join([f"'{k}' {v} " for k, v in fields.items()])}, 
 
         PRIMARY KEY ({", ".join(primary_key)})
         );
@@ -49,24 +46,26 @@ def create_table(conn: sqlite3.Connection,
         print(f"Table {table_name} created")
     except Exception as err:
         print(err)
-
+    print("table created")
     cur.close()
 
 
-def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame, create_if_dont_exist=True):
+def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame, create_if_dont_exist=True, primary_key = ["date", "ticker"]):
     cur = conn.cursor()
     if create_if_dont_exist:
         sql = f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'"
         cur.execute(sql)
         if cur.fetchall()==[]:
+            print("Creating table")
             df_field_types = create_df_field_types_dict(df)
-            create_table(conn, table_name, df_field_types, primary_key=["date", "ticker"])
+            create_table(conn, table_name, df_field_types, primary_key=primary_key)
 
     inserted = 0
     for i, r in df.iterrows():
-        sql = f"""INSERT OR REPLACE INTO {table_name}(date, ticker, open, high, low, close, volume_1, volume_2, trade_count, unknown_1, unknown_2, unknown_3 ,unknown_4)  
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);
+        sql = f"""INSERT OR REPLACE INTO {table_name} ({",".join(df.columns)})  
+                    VALUES ({",".join(["?"]*df.shape[1])});
         """
+
         
         task = r.values
 
@@ -76,10 +75,10 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
             inserted +=1
         except Exception as err:
         	print(err)
-            # print(str(err) == f"no such table: {table_name}")
+
     conn.commit()
-    # print(f"Inserted {inserted} rows into {table_name}")
     cur.close()
+    print(f"{inserted} rows inserted")
         
 
 

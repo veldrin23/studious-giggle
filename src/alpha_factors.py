@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 
 class GenerateAlphas:
-#     __refs__ = defaultdict(list)
     def __init__(self, coin_df):
         
 
@@ -20,9 +19,6 @@ class GenerateAlphas:
         self.combined_factors = None
         
     def rename_factor_columns(self, factor, coin_data, factor_no):
-#         columns=[(x, f"factor_{factor_no}") for x in pd.unique(coin_data.index.get_level_values(1))]
-        # print("aaa")
-        # print(coin_data.head(5))
         columns=[(f"factor_{factor_no}", x) for x in pd.unique(coin_data.index.get_level_values(1))]
         factor.columns=pd.MultiIndex.from_tuples(columns)
         return factor
@@ -39,13 +35,13 @@ class GenerateAlphas:
             "factor_001": self.generate_factor_001,
             "factor_002": self.generate_factor_002,
             "factor_003": self.generate_factor_003,
-            "factor_004": self.generate_factor_004,
+            # "factor_004": self.generate_factor_004, #TODO: I think think this one is implemented correctly yet
             "factor_nvp": self.generate_factor_nvp
         }
         
         if factors_to_run == "all":
             for key, value in af_dict.items():
-                print(f"Running {key}")
+                print(f"Running {key}") #TODO: add a timer 
                 value()
         
         else:
@@ -61,10 +57,13 @@ class GenerateAlphas:
                 
                 
     def merge_factor(self, factor):
+
+        factor = factor.reset_index().melt(id_vars = ["date", "factor"])#.set_index(["date", "factor", "ticker"])
         if self.combined_factors is None:
             self.combined_factors = factor
         else:
-            self.combined_factors = self.combined_factors.join(factor)
+            # self.combined_factors = self.combined_factors.join(factor)
+            self.combined_factors = pd.concat([self.combined_factors, factor])
         
         
         
@@ -81,8 +80,8 @@ class GenerateAlphas:
         ts_argmax = np.square(returns_temp).rolling(window=5).apply(np.argmax) + 1
         factor = ts_argmax.rank(axis='rows', pct=True) - 0.5
 
-        factor = self.rename_factor_columns(factor, self.coin_data, "001")#.dropna().apply(zscore)
-        
+        # factor = self.rename_factor_columns(factor, self.coin_data, "001")#.dropna().apply(zscore)
+        factor["factor"] = "factor_001"
         self.merge_factor(factor)
         # return 1
         
@@ -106,8 +105,8 @@ class GenerateAlphas:
 
         factor = -1 * temp_1_ranked.rolling(window=6).corr(temp_2_ranked)
 
-        factor = self.rename_factor_columns(factor, self.coin_data, "002")#.dropna().apply(zscore)
-        
+        # factor = self.rename_factor_columns(factor, self.coin_data, "002")#.dropna().apply(zscore)
+        factor["factor"] = "factor_002"
         self.merge_factor(factor)
         
 #         factor.columns = [c[0] for c in factor.columns]
@@ -125,8 +124,8 @@ class GenerateAlphas:
 
         factor = -1 * ranked_volume.rolling(window=10).corr(ranked_open)
 
-        factor = self.rename_factor_columns(factor, self.coin_data, "003")#.dropna().apply(zscore)
-
+        # factor = self.rename_factor_columns(factor, self.coin_data, "003")#.dropna().apply(zscore)
+        factor["factor"] = "factor_003"
         self.merge_factor(factor)
         
 #         factor.columns = [c[0] for c in factor.columns]
@@ -142,9 +141,11 @@ class GenerateAlphas:
 
         
         factor = temp_low.rank(axis="rows").rolling(window=9).apply(rolling_rank)
+
+
         
-        factor = self.rename_factor_columns(factor, self.coin_data, "004")#.dropna().apply(zscore)
-        
+        # factor = self.rename_factor_columns(factor, self.coin_data, "004")#.dropna().apply(zscore)
+        factor["factor"] = "factor_004"
         self.merge_factor(factor)
         
 #         factor.columns = [c[0] for c in factor.columns]
@@ -154,8 +155,8 @@ class GenerateAlphas:
         nvp = self.volume * self.open / self.trade_count
         factor = nvp#.rank(axis="columns", pct=True)#.apply(zscore)
         
-        factor = self.rename_factor_columns(factor, self.coin_data, "nvp")
-        
+        # factor = self.rename_factor_columns(factor, self.coin_data, "nvp")
+        factor["factor"] = "factor_nvp"
         self.merge_factor(factor)
         
         
