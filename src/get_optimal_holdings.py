@@ -2,6 +2,16 @@ from abc import ABC, abstractmethod
 
 
 class AbstractOptimalHoldings(ABC):    
+
+    
+    def __init__(self, risk_cap=0.05, factor_max=10.0, factor_min=-10.0, weights_max=0.55, weights_min=-0.55):
+        self.risk_cap=risk_cap
+        self.factor_max=factor_max
+        self.factor_min=factor_min
+        self.weights_max=weights_max
+        self.weights_min=weights_min
+
+
     @abstractmethod
     def _get_obj(self, weights, alpha_vector):
         """
@@ -131,14 +141,6 @@ class OptimalHoldings(AbstractOptimalHoldings):
                           contraint_7
                          ]
         return all_contraints
-
-    def __init__(self, risk_cap=0.05, factor_max=10.0, factor_min=-10.0, weights_max=0.55, weights_min=-0.55):
-        self.risk_cap=risk_cap
-        self.factor_max=factor_max
-        self.factor_min=factor_min
-        self.weights_max=weights_max
-        self.weights_min=weights_min
-
 
         
 
