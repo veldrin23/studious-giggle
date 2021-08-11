@@ -118,7 +118,7 @@ def main(aggregator = "quantile_scoring") -> None:
 
         temporal_alpha_factors = create_temporal_alpha_values(alpha_factors, alpha_scores)
 
-    insert_dataframe(conn, "temporal_alpha_factors", temporal_alpha_factors, primary_key=["date", "ticker"])
+        insert_dataframe(conn, "temporal_alpha_factors", temporal_alpha_factors, primary_key=["date", "ticker"])
 
 
 if __name__ == "__main__":

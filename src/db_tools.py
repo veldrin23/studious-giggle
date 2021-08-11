@@ -79,7 +79,7 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
 
     conn.commit()
     cur.close()
-    print(f"{inserted} rows inserted")
+    print(f"\t{inserted} rows inserted")
         
 
 

@@ -75,10 +75,10 @@ def get_tickers():
     with open("./config/tickers.txt") as f:
         bitcoin_tickers = f.read().splitlines() 
 
-    with open("./config/tickert_to_ignore.txt") as f:
+    with open("./config/tickers_to_ignore.txt") as f:
         ignore_tickers = f.read().splitlines() 
 
-    out = [b for b in bitcoin_tickers if b not in ignore_tickers]
+    out = [b +"USDT" for b in bitcoin_tickers if b not in ignore_tickers]
 
     return out
 
