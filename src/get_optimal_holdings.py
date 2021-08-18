@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+import cvxpy as cvx
+import numpy as np
+import pandas as pd
 
 
 class AbstractOptimalHoldings(ABC):    
@@ -55,7 +58,6 @@ class AbstractOptimalHoldings(ABC):
         raise NotImplementedError()
         
     def _get_risk(self, weights, factor_betas, alpha_vector_index, factor_cov_matrix, idiosyncratic_var_vector):
-        print(weights)
         f = factor_betas.loc[alpha_vector_index].values.T @ weights
         X = factor_cov_matrix
         S = np.diag(idiosyncratic_var_vector.loc[alpha_vector_index].values.flatten())
@@ -70,7 +72,9 @@ class AbstractOptimalHoldings(ABC):
         constraints = self._get_constraints(weights, factor_betas.loc[alpha_vector.index].values, risk)
         
         prob = cvx.Problem(obj, constraints)
-        prob.solve(max_iters=500)
+
+        # solver options: ECOS, MOSEK, CBC, CVXOPT, NAG, and SCS
+        prob.solve(max_iters=500, solver=cvx.ECOS)
 
         optimal_weights = np.asarray(weights.value).flatten()
         
@@ -128,7 +132,7 @@ class OptimalHoldings(AbstractOptimalHoldings):
         contraint_3 = factor_betas.T.dot(weights).all() >= self.factor_min
 #         contraint_4 = sum(weights) == 0
         contraint_4 = weights >= 0
-        contraint_5 = sum(cvx.abs(weights)) <= 1
+        contraint_5 = sum(weights) == 1
         contraint_6 = weights >= self.weights_min
         contraint_7 = weights <= self.weights_max
 

@@ -28,9 +28,18 @@ Runs the functions that are defined in `./src/alpha_factors.py`. The main functi
 ### Inputs
 Coin data from `./data/coin_data.db`
 
+Functions from `./src/alpha_factors.py`
+
 ### Output
 None; Creates alpha factors in the `./data/coin_data.db` titled `alpha_factors`
+
 ## Alpha factor aggregator
+### Overview
+
+
+The intention if this function is to aggregate the alpha factor outputs. Currently it uses as ranking method to create weights for each alpha factor for each coin. It goes about doing that by binning the returns into 5 bins based on quantiles (0.025, 0.15, 0.85, 0.975) with bin valuse -2, -1, 0, 1, and 2. The alpha factor values are placed in two bins around the 0.5 quantile with values -1 and 1. The process takes the product of the returns bin and the alpha bin values. Summing over a given time period will give you weights which are indicative on each alpha factor's performance. These weights are then converted into values which would sum up to one. 
+
+
 
 ## Optimal holdings
 

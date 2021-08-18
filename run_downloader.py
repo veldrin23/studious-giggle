@@ -15,12 +15,12 @@ from src.download_ticker_data import get_tickers, gather_coin_data
 from src.db_tools import create_table, insert_dataframe, get_latest_date
 from src.check_latest_binance_date import check_latest_binance_date
 
-def download_and_save_coin_data(binance_client, coin_name, from_date="2021-02-25 16:00:00"):
+def download_and_save_coin_data(binance_client, coin_name, from_date="2021-01-01 00:00:00"):
 
     sql_connection = sqlite3.connect("./data/crypto.db")
 
     coin_data = gather_coin_data(binance_client, coin_name, str(from_date), frequency = "hourly")
-    coin_data = coin_data.set_index(["date", "ticker"]).reset_index()
+    # coin_data = coin_data.set_index(["date", "ticker"]).reset_index()
 
     coin_data["date"] = list(map(lambda x: x.strftime("%Y-%m-%d %H:%M:%S"), coin_data["date"]))
     insert_dataframe(sql_connection, "coin_data", coin_data, create_if_dont_exist=True)
@@ -86,7 +86,7 @@ def main():
         else:
             print("Next batch of data not available yet")
     else:
-        print("No existing data found, downloading from 2021-05-25 16:00:00")
+        print("No existing data found, downloading from 2021-01-01 00:00:00")
         coin_names = get_tickers()
         for coin_name in coin_names:
             print(coin_name)

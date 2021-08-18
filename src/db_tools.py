@@ -47,7 +47,6 @@ def create_table(conn: sqlite3.Connection,
         print(f"Table {table_name} created")
     except Exception as err:
         print(err)
-    print("table created")
     cur.close()
 
 
@@ -79,7 +78,7 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
 
     conn.commit()
     cur.close()
-    print(f"\t{inserted} rows inserted")
+    print(f"\t{inserted} rows inserted into {table_name}")
         
 
 
@@ -178,3 +177,40 @@ def get_returns(conn, live_coins, end_timestamp = None, based_on = "close"):
     cur.close()
     return returns
     
+
+
+def get_closing_values(conn, live_coins, end_timestamp=None):
+    """
+    Get the closing values at each timestamp
+
+    Parameters
+    ----------
+    conn : sqlite3 connection object
+        Connection to sqlite3 database containing the aggregated alpha factors
+    live_coins : list of str values
+        List of coins to be considered in the live portfolio
+    end_timestamp: str date value (%Y-%m-%d %H:%M:%S)
+        last timestamp of the return values to be retreived 
+
+    Returns
+    -------
+    returns: pandas dataframe
+        dataframe containign the closing values at each timestamp
+
+    """
+    cur = conn.cursor()
+    
+    if end_timestamp is None:
+        sql = f"""SELECT date, ticker, close FROM coin_data WHERE TRIM(ticker) IN ('{"','".join(live_coins)}')"""
+    else:
+        sql = f"""SELECT date, ticker, close FROM coin_data WHERE TRIM(ticker) IN ('{"','".join(live_coins)}') and date <= '{end_timestamp}'"""
+    
+    coin_data = pd.DataFrame(cur.execute(sql).fetchall())
+    names = list(map(lambda x: x[0].lower(), cur.description))
+    coin_data.columns  = names
+    
+
+    coin_data["date"] = pd.to_datetime(coin_data["date"])
+    coin_data = coin_data.pivot(columns = ["ticker"], index=["date"]).close
+    cur.close()
+    return coin_data
