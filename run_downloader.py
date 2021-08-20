@@ -69,7 +69,7 @@ def main():
                 if datetime.datetime.now(tz) > latest_date_availabe: 
                     print("Next batch available")
                     # download past day's worth of data 
-                    prev_day = (datetime.datetime.now(tz) + datetime.timedelta(days=-1)).strftime("%Y-%m-%d %H:%M:%S")
+                    prev_day = (pd.to_datetime(max_date_downloaded) + datetime.timedelta(days=-1)).strftime("%Y-%m-%d %H:%M:%S")
 
                     # split the task over several cores (TODO: see if you can use async instead)
                     with Pool(cores) as p:
