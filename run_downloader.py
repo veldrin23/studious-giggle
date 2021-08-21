@@ -10,7 +10,7 @@ import pytz
 from multiprocessing import Pool, cpu_count
 from itertools import product
 import os
-
+from requests.exceptions import ConnectionError
 from src.download_ticker_data import get_tickers, gather_coin_data
 from src.db_tools import create_table, insert_dataframe, get_latest_date
 from src.check_latest_binance_date import check_latest_binance_date
@@ -29,7 +29,7 @@ def download_and_save_coin_data(binance_client, coin_name, from_date="2021-01-01
 
 def main():
     time.sleep(1) # sleep 1 second, since cron can only start on the hour
-
+    download_succeeded = False
     tz = pytz.timezone("Australia/Sydney")
     
     cores = cpu_count()
@@ -54,8 +54,6 @@ def main():
         if datetime.datetime.today() > pd.to_datetime(max_date_downloaded) + datetime.timedelta(hours=1):
             # if it is, check if binance has the latest data available. If not, wait 5 seconds 
 
-
-
             # get list of coin names 
             coin_names = get_tickers()
 
@@ -65,24 +63,28 @@ def main():
             coin_data_updated = False
 
             while not coin_data_updated:
+                try: 
                 # check if data is available 
-                if datetime.datetime.now(tz) > latest_date_availabe: 
-                    print("Next batch available")
-                    # download past day's worth of data 
-                    prev_day = (pd.to_datetime(max_date_downloaded) + datetime.timedelta(days=-1)).strftime("%Y-%m-%d %H:%M:%S")
+                    if datetime.datetime.now(tz) > latest_date_availabe: 
+                        print("Next batch available")
+                        # download past day's worth of data 
+                        prev_day = (pd.to_datetime(max_date_downloaded) + datetime.timedelta(days=-1)).strftime("%Y-%m-%d %H:%M:%S")
 
-                    # split the task over several cores (TODO: see if you can use async instead)
-                    with Pool(cores) as p:
-                        p.starmap(download_and_save_coin_data, product([binance_client], coin_names, [prev_day]))
+                        # split the task over several cores (TODO: see if you can use async instead)
+                        with Pool(cores) as p:
+                            p.starmap(download_and_save_coin_data, product([binance_client], coin_names, [prev_day]))
 
-                    # exit condition for while loop
-                    coin_data_updated = True
+                        # exit condition for while loop
+                        coin_data_updated = True
+                                    # wait 1 second before checking again 
+                    else:
+                        time.sleep(1)
+                        sys.stdout.write(".")
+                        latest_date_availabe = check_latest_binance_date(binance_client)
+                except ConnectionError:
+                    coin_data_updated = False
 
-                # wait 1 second before checking again 
-                else:
-                    time.sleep(1)
-                    sys.stdout.write(".")
-                    latest_date_availabe = check_latest_binance_date(binance_client)
+
         else:
             print("Next batch of data not available yet")
     else:
