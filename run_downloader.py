@@ -54,8 +54,6 @@ def main():
         if datetime.datetime.today() > pd.to_datetime(max_date_downloaded) + datetime.timedelta(hours=1):
             # if it is, check if binance has the latest data available. If not, wait 5 seconds 
 
-
-            try: 
             # get list of coin names 
             coin_names = get_tickers()
 
