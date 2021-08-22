@@ -133,3 +133,5 @@ config/binance_api_key.txt
 data/
 *.ipynb
 *.db
+
+!./alpha_tester.ipynb
