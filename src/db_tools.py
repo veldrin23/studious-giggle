@@ -29,8 +29,9 @@ def create_df_field_types_dict(df):
 def create_table(conn: sqlite3.Connection, 
                  table_name: str, 
                  fields: dict, 
-                 primary_key: [str]) -> None:
-    
+                 primary_key: str) -> None:
+
+
     sql = f"""
         CREATE TABLE {table_name} (
         {", ".join([f"'{k}' {v} " for k, v in fields.items()])}, 
@@ -50,6 +51,9 @@ def create_table(conn: sqlite3.Connection,
     cur.close()
 
 
+
+
+
 def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame, create_if_dont_exist=True, primary_key = ["date", "ticker"]):
     cur = conn.cursor()
     if create_if_dont_exist:
@@ -65,20 +69,16 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
         sql = f"""INSERT OR REPLACE INTO {table_name} ({",".join(df.columns)})  
                     VALUES ({",".join(["?"]*df.shape[1])});
         """
-
-        
         task = r.values
-
         try:
             cur.execute(sql, task)
-            
             inserted +=1
         except Exception as err:
         	print(err)
 
     conn.commit()
     cur.close()
-    print(f"\t{inserted} rows inserted into {table_name}")
+    # print(f"\t{inserted} rows inserted into {table_name}")
         
 
 

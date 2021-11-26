@@ -7,10 +7,8 @@ import dateparser
 import pytz
 import json
 import datetime
-from tqdm import tqdm
 from glob import glob
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def convert_unix_time_to_date(unix_time):
@@ -43,6 +41,7 @@ def gather_coin_data(client, ticker, from_date, frequency = "daily"):
                 "unknown_3",
                 "unknown_4"]
     
+
     freq_dict = {"daily": Client.KLINE_INTERVAL_1DAY,
             "hourly": Client.KLINE_INTERVAL_1HOUR}
     

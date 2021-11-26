@@ -5,7 +5,6 @@ import pandas as pd
 import datetime
 import time
 import sys
-from tqdm import tqdm
 import pytz
 from multiprocessing import Pool, cpu_count
 from itertools import product
