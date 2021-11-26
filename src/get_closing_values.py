@@ -15,7 +15,13 @@ def get_closing_values(conn, live_coins, end_timestamp=None):
     
 
     coin_data["date"] = pd.to_datetime(coin_data["date"])
-    coin_data = coin_data.pivot(columns = ["ticker"], index=["date"]).close.astype(float)
+    
+    if pd.__version__ == "0.20.3":
+        coin_data = coin_data.set_index("date").pivot(columns="ticker").close.astype(float)
+    else:
+        coin_data = coin_data.pivot(columns = ["ticker"], index=["date"]).close.astype(float)
+        
+    
     cur.close()
     return coin_data
 
