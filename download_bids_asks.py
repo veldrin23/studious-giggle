@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import asyncio
 from binance import AsyncClient, DepthCacheManager, BinanceSocketManager
 import pandas as pd
@@ -26,7 +27,7 @@ def download_and_store_ask_and_bids(depth_cache, conn, symbol, n = 100):
 
 
 async def main(n=100):
-    conn = sqlite3.connect("C:/Users/andre/Documents/studious-giggle/data/crypto.db")
+    conn = sqlite3.connect("./data/crypto.db")
     client = await AsyncClient.create()
 
     async with DepthCacheManager(client, symbol=f'BTCUSDT') as dcm_socket:
