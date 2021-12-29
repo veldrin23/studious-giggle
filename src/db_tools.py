@@ -40,7 +40,6 @@ def create_table(conn: sqlite3.Connection,
         );
 
         """
-
     cur = conn.cursor()
     
     try:
@@ -65,7 +64,7 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
             create_table(conn, table_name, df_field_types, primary_key=primary_key)
 
     inserted = 0
-    for i, r in df.iterrows():
+    for i, r in tqdm(df.iterrows()):
         sql = f"""INSERT OR REPLACE INTO {table_name} ({",".join(df.columns)})  
                     VALUES ({",".join(["?"]*df.shape[1])});
         """
@@ -74,11 +73,10 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
             cur.execute(sql, task)
             inserted +=1
         except Exception as err:
-        	print(err)
+            print(err)
 
     conn.commit()
     cur.close()
-    # print(f"\t{inserted} rows inserted into {table_name}")
         
 
 
@@ -112,7 +110,7 @@ def get_aggregated_alpha_factors(conn, live_coins, timestamp = None):
         """
     cur = conn.cursor()
     
-    if date is None:
+    if timestamp is None:
         sql = f"""
         SELECT  
                 date, 

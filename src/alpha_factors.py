@@ -1,47 +1,45 @@
 
 import numpy as np
 import pandas as pd
+from scipy.stats import zscore
+
 
 class GenerateAlphas:
     def __init__(self, coin_df):
         
-
-        self.coin_data = coin_df[:-1]
-        self.close = coin_df.loc[:,["close"]].reset_index().pivot(index="date", columns="ticker").close.astype(float)
-        self.open = coin_df.loc[:,["open"]].reset_index().pivot(index="date", columns="ticker").open.astype(float)
-        self.volume = coin_df.loc[:,["volume_1"]].reset_index().pivot(index="date", columns="ticker").volume_1.astype(float)
-        self.low = coin_df.loc[:,["low"]].reset_index().pivot(index="date", columns="ticker").low.astype(float)
-        self.high = coin_df.loc[:,["high"]].reset_index().pivot(index="date", columns="ticker").high.astype(float)
-        self.trade_count = coin_df.loc[:,["trade_count"]].reset_index().pivot(index="date", columns="ticker").trade_count.astype(float)
-
-        self.returns = self.close.pct_change()
-
-        self.combined_factors = None
-        
-    def rename_factor_columns(self, factor, coin_data, factor_no):
-        columns=[(f"factor_{factor_no}", x) for x in pd.unique(coin_data.index.get_level_values(1))]
-        factor.columns=pd.MultiIndex.from_tuples(columns)
-        return factor
-
+  
+        # self.coin_data = coin_df[:-1]
+        print(coin_df.columns)
+        self.close =        self.extract_and_pivot_fields(coin_df, "close")
+        self.mean_bids =    self.extract_and_pivot_fields(coin_df, "mean_bids")
+        self.mean_asks =    self.extract_and_pivot_fields(coin_df, "mean_asks")
+        self.open_time =    self.extract_and_pivot_fields(coin_df, "open_time")
+        self.open =         self.extract_and_pivot_fields(coin_df, "open")
+        self.high =         self.extract_and_pivot_fields(coin_df, "high")
+        self.low =          self.extract_and_pivot_fields(coin_df, "low")
+        self.close =        self.extract_and_pivot_fields(coin_df, "close")
+        self.volume =       self.extract_and_pivot_fields(coin_df, "volume")
+        self.low =          self.extract_and_pivot_fields(coin_df, "low")
+        self.returns =      self.close.pct_change()
     
-    extract_fields = lambda coin_data, fields: coin_data.loc[:,field].reset_index().pivot(index="date", columns="ticker").loc[:,field]
+    extract_and_pivot_fields = lambda self, coin_data, field: coin_data.loc[:,[field, "symbol", "date"]].reset_index().pivot(index="date", columns="symbol").loc[:,field]
     
-    rolling_rank = lambda data: data.size - data.argsort().argsort()[-1]
-
 
 
     def run_factors(self, factors_to_run = "all"):
         af_dict = {
-            "factor_001": self.generate_factor_001,
-            "factor_002": self.generate_factor_002,
-            "factor_003": self.generate_factor_003,
-            # "factor_004": self.generate_factor_004, #TODO: I think think this one is implemented correctly yet
-            "factor_nvp": self.generate_factor_nvp
+            # "factor_001": self.generate_factor_001,
+            # "factor_002": self.generate_factor_002,
+            # "factor_003": self.generate_factor_003,
+            # "factor_004": self.generate_factor_004, #TODO: I think think this one is not implemented correctly yet
+            # "factor_nvp": self.generate_factor_nvp,
+            "funding_shift_1": self.generate_funding_shift_1,
+            "funding_shift_2": self.generate_funding_shift_2
         }
         
         if factors_to_run == "all":
             for key, value in af_dict.items():
-                print(f"Running {key}") #TODO: add a timer 
+                print(f"Running {key}")
                 value()
         
         else:
@@ -55,18 +53,14 @@ class GenerateAlphas:
     
 
                 
-                
     def merge_factor(self, factor):
 
-        factor = factor.reset_index().melt(id_vars = ["date", "factor"])#.set_index(["date", "factor", "ticker"])
-        if self.combined_factors is None:
-            self.combined_factors = factor
-        else:
-            # self.combined_factors = self.combined_factors.join(factor)
+        factor = factor.reset_index().melt(id_vars = ["date", "factor"])
+        try: 
             self.combined_factors = pd.concat([self.combined_factors, factor])
-        
-        
-        
+        except AttributeError:
+            self.combined_factors = factor
+
     
     def generate_factor_001(self):
         """
@@ -160,4 +154,17 @@ class GenerateAlphas:
         self.merge_factor(factor)
         
         
+    def generate_funding_shift_1(self):
         
+        shift_1 = (((self.mean_asks/self.mean_bids).rolling(window = 4).mean() - (self.mean_asks/self.mean_bids)).rank(axis="rows").apply(lambda x: zscore(x, nan_policy='omit')))
+        shift_1["factor"] = "funding_shift_1"
+
+        self.merge_factor(shift_1)
+
+        
+    def generate_funding_shift_2(self):
+        
+        shift_2 = (self.mean_asks/self.mean_bids).rank(axis="rows", pct=True).apply(lambda x: zscore(x, nan_policy='omit'))
+        shift_2["factor"] = "funding_shift_2"
+
+        self.merge_factor(shift_2)        
