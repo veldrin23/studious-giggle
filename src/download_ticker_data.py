@@ -48,9 +48,10 @@ def gather_coin_data(client, ticker, from_date, frequency = "daily"):
     
     klines = client.get_historical_klines(ticker, freq_dict[frequency], from_date)
     klines_df = pd.DataFrame(klines, columns = colnames)
-    
-    klines_df["date"] = pd.to_datetime(klines_df.apply(lambda x: convert_unix_time_to_date(x["unix"]), axis=1))
-    klines_df = klines_df.drop(["unix"],axis=1)
+    # klines_df["date"] = pd.to_datetime(klines_df.apply(lambda x: convert_unix_time_to_date(x["unix"]), axis=1))
+    klines_df["date"] = klines_df["unix"].apply(lambda x: datetime.datetime.fromtimestamp(x/1000).astimezone(pytz.timezone("Australia/Sydney")))
+    # klines_df["date"] = pd.to_datetime(klines_df.apply(lambda x: datetime.datetime.fromtimestamp(x["unix"]/1000).astimezone(pytz.timezone("Australia/Sydney"))), axis=1)
+    # klines_df = klines_df.drop(["unix"],axis=1)
     klines_df["ticker"] = ticker.replace("USDT","")
     
     return klines_df

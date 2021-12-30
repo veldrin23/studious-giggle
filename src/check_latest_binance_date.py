@@ -36,10 +36,10 @@ def check_latest_binance_date(binance_client, coin_to_test = "DOGEUSDT"):
     an_hour_ago = datetime.datetime.now(tz) + datetime.timedelta(hours=-1)
 
     an_hour_ago_utc = an_hour_ago.astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
-    print(an_hour_ago_utc)
+
     coin_data = gather_coin_data(binance_client, coin_to_test, an_hour_ago_utc, frequency = "hourly")
 
-    max_hour = max(coin_data["date"]).tz_localize("Australia/Sydney")
+    max_hour = max(coin_data["date"])
 
 
     if not type(max_hour)==pd._libs.tslibs.timestamps.Timestamp:

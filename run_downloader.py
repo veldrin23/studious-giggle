@@ -1,4 +1,8 @@
+#!/usr/bin/env python3
+
+
 import sqlite3
+from sqlite3 import OperationalError
 from binance.client import Client
 from binance.exceptions import BinanceAPIException
 import pandas as pd
@@ -15,7 +19,7 @@ from src.db_tools import create_table, insert_dataframe, get_latest_date
 from src.check_latest_binance_date import check_latest_binance_date
 
 def download_and_save_coin_data(binance_client, coin_name, from_date="2021-01-01 00:00:00"):
-
+    sys.stdout.write(".")
     sql_connection = sqlite3.connect("./data/crypto.db")
 
     coin_data = gather_coin_data(binance_client, coin_name, str(from_date), frequency = "hourly")
@@ -46,7 +50,10 @@ def main():
     if os.path.exists("./data/crypto.db"):
         conn = sqlite3.connect("./data/crypto.db")
         cur = conn.cursor()
-        max_date_downloaded = cur.execute("select max(date) from coin_data").fetchall()[0][0]
+        try: 
+            max_date_downloaded = cur.execute("select max(date) from coin_data").fetchall()[0][0]
+        except OperationalError:
+            max_date_downloaded = 0
 
         # check if it's been more than an hour since the latest date in the SQL db
         # using today(), since I'm doing a naive date comparison
