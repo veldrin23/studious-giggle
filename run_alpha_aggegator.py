@@ -93,21 +93,21 @@ def create_temporal_alpha_values(alpha_factors, alpha_scores):
 def main(aggregator = "quantile_scoring") -> None:
 
     if aggregator == "quantile_scoring":
-        conn = sqlite3.connect("./data/crypto.db")
+        price_conn = sqlite3.connect("./data/coin_data.db")
+        alpha_factor_conn = sqlite3.connect("./data/alpha_factor_values/db")
+        cur = price_conn.cursor()
 
-        cur = conn.cursor()
-
-        with open('./config/tickers_to_ignore.txt') as f:
-            tickers_to_ignore = f.read().split("\n")
+        with open('./config/live_symbols.txt') as _:
+            live_symbols = _.read().splitlines()
             
-        with open("./config/alpha_factors_to_ignore.txt") as f:
-            alpha_factors_to_ignore = f.read().split("\n")
+        with open("./config/live_alpha_factors.txt") as _:
+            live_alpha_factors = _.read().splitlines()
 
-        coin_data = pd.DataFrame(cur.execute(f"""select * from coin_data where ticker not in ('{"','".join(tickers_to_ignore)}')""").fetchall())
+        coin_data = pd.DataFrame(price_conn.cursor().execute(f"""select * from coin_data where ticker in ('{"','".join(live_symbols)}')""").fetchall())
         names = list(map(lambda x: x[0].lower(), cur.description))
         coin_data.columns  = names
 
-        alpha_factors = pd.DataFrame(cur.execute(f"""select * from alpha_factors where factor not in ('{"','".join(alpha_factors_to_ignore)}') and ticker not in ('{"','".join(tickers_to_ignore)}')""").fetchall())
+        alpha_factors = pd.DataFrame(alpha_factor_conn.cursor().execute(f"""select * from alpha_factors where factor  in ('{"','".join(live_alpha_factors)}') and ticker in ('{"','".join(live_symbols)}')""").fetchall())
         names = list(map(lambda x: x[0].lower(), cur.description))
         alpha_factors.columns  = names
 
@@ -118,7 +118,7 @@ def main(aggregator = "quantile_scoring") -> None:
 
         temporal_alpha_factors = create_temporal_alpha_values(alpha_factors, alpha_scores)
 
-        insert_dataframe(conn, "temporal_alpha_factors", temporal_alpha_factors, primary_key=["date", "ticker"])
+        insert_dataframe(alpha_factor_conn, "temporal_alpha_factors", temporal_alpha_factors, primary_key=["date", "ticker"])
 
 
 if __name__ == "__main__":

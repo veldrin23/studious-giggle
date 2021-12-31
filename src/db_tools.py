@@ -64,7 +64,7 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
             create_table(conn, table_name, df_field_types, primary_key=primary_key)
 
     inserted = 0
-    for i, r in tqdm(df.iterrows()):
+    for i, r in df.iterrows():
         sql = f"""INSERT OR REPLACE INTO {table_name} ({",".join(df.columns)})  
                     VALUES ({",".join(["?"]*df.shape[1])});
         """

@@ -32,7 +32,7 @@ async def download_ticker_info(coin, conn, n):
 
     client = await AsyncClient.create()
 
-    async with DepthCacheManager(client, symbol=f'{coin}USDT') as dcm_socket:
+    async with DepthCacheManager(client, symbol=coin) as dcm_socket:
         depth_cache = await dcm_socket.recv()
         
 

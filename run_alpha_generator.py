@@ -7,24 +7,28 @@ from src.db_tools import insert_dataframe
 import datetime
 import pickle
 
-pd.options.display.max_rows = 35
+pd.options.display.max_rows = 100
 pd.options.display.max_columns = 500
 
-def run_alpha_factors_and_upload(coin_data, conn):
+def run_alpha_factors_and_upload(coin_data, alpha_conn):
     alphas = GenerateAlphas(coin_data)
     alphas.run_factors("all")
-
+    # values = alphas.combined_factors.value
+    # [print(v) for v in values[:50]]
     # ANDRE, volgende... jy moet die df melt en dan pivot sodat die date and tickers die primary keys is
     # print()
-    # alphas.combined_factors["date"] = alphas.combined_factors["date"].astype("str")
-    # insert_dataframe(conn, "alpha_factors", alphas.combined_factors, primary_key=["date", "factor", "ticker"])
+    print(alphas.combined_factors)
+    values = alphas.combined_factors["value"]
+    [print(v) for v in values]
+    alphas.combined_factors["date"] = alphas.combined_factors["date"].astype("str")
+    insert_dataframe(alpha_conn, "alpha_factors", alphas.combined_factors, primary_key=["date", "factor", "symbol"])
 
 
 def main():
 
     # for testing, only use past 16 days' of data
     n_days_ago = (datetime.datetime.today() + datetime.timedelta(days=-16)).strftime("%Y-%m-%d %H:%M:%S")
-    conn = sqlite3.connect("./data/crypto.db")
+    alpha_conn = sqlite3.connect("./data/alpha_factor_values.db")
 
     coin_conn = sqlite3.connect("./data/coin_data.db")
     cur = coin_conn.cursor()
@@ -56,7 +60,7 @@ def main():
 
         if max_coin_date > max_alpha_date:
             print("Alpha factors outdated, running alpha factors")
-            run_alpha_factors_and_upload(coin_data, conn)
+            run_alpha_factors_and_upload(coin_data, alpha_conn)
 
         elif max_coin_date == max_alpha_date:
             print("Alpha factors up to date")
@@ -67,7 +71,7 @@ def main():
     except Exception as err:
         print(f"Table probably doesn't exist, error: {str(err)}\nRunning alpha factors from the start (This will take a while)")
         
-        run_alpha_factors_and_upload(coin_data, conn)
+        run_alpha_factors_and_upload(coin_data, alpha_conn)
 
 
 

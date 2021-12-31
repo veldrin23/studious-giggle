@@ -2,14 +2,14 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import zscore
-
+pd.options.display.max_rows = 100
+pd.options.display.max_columns = 500
 
 class GenerateAlphas:
     def __init__(self, coin_df):
         
   
         # self.coin_data = coin_df[:-1]
-        print(coin_df.columns)
         self.close =        self.extract_and_pivot_fields(coin_df, "close")
         self.mean_bids =    self.extract_and_pivot_fields(coin_df, "mean_bids")
         self.mean_asks =    self.extract_and_pivot_fields(coin_df, "mean_asks")
