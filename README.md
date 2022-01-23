@@ -18,8 +18,6 @@ Function that downloads the latest data from Binance and saves it into a sqlite3
 ### Output
 None; Creates database ./data/coin_data.db and stores all of the data in a table titled `coin_data`
 
-TODO: Currently I use multiprocessing to split out the downloading tasks - but one can do this more effectively with async 
-
 ## Alpha factor generator
 
 ### Overview 
