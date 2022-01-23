@@ -137,3 +137,4 @@ data/
 !./alpha_tester.ipynb
 *.swp
 backup
+*.csv

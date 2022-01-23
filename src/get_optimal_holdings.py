@@ -99,6 +99,7 @@ class OptimalHoldings(AbstractOptimalHoldings):
         objective : CVXPY Objective
             Objective function
         """
+
         assert(len(alpha_vector.columns) == 1)
 
         obj = cvx.Minimize(-alpha_vector.values.flatten() @ weights)

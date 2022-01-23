@@ -34,7 +34,8 @@ class GenerateAlphas:
             # "factor_004": self.generate_factor_004, #TODO: I think think this one is not implemented correctly yet
             # "factor_nvp": self.generate_factor_nvp,
             "funding_shift_1": self.generate_funding_shift_1,
-            "funding_shift_2": self.generate_funding_shift_2
+            "funding_shift_2": self.generate_funding_shift_2,
+            "funding_shift_3": self.generate_funding_shift_3,
         }
         
         if factors_to_run == "all":
@@ -155,16 +156,29 @@ class GenerateAlphas:
         
         
     def generate_funding_shift_1(self):
+        """
+        Factor aims to measure the change in demand of a symbol. 
+        It compares the current asks / bid ratio (want to purchase over want to sell) with the rolling average over the past 4 hours
         
-        shift_1 = (((self.mean_asks/self.mean_bids).rolling(window = 4).mean() - (self.mean_asks/self.mean_bids)).rank(axis="rows").apply(lambda x: zscore(x, nan_policy='omit')))
+        """
+        shift_1 = ((self.mean_asks/self.mean_bids) - ((self.mean_asks/self.mean_bids).rolling(window = 4).mean()).rank(axis="rows").apply(lambda x: zscore(x, nan_policy='omit')))
         shift_1["factor"] = "funding_shift_1"
 
         self.merge_factor(shift_1)
 
         
     def generate_funding_shift_2(self):
-        
-        shift_2 = (self.mean_asks/self.mean_bids).rank(axis="rows", pct=True).apply(lambda x: zscore(x, nan_policy='omit'))
+        """
+        Factor measure the change in demand over the past two hours
+        """
+        shift_2 = (self.mean_bids/self.mean_asks).rank(axis="rows", pct=True).rolling(window = 2).mean().apply(lambda x: zscore(x, nan_policy='omit'))
         shift_2["factor"] = "funding_shift_2"
 
         self.merge_factor(shift_2)        
+
+    def generate_funding_shift_3(self):
+        
+        shift_3 = (self.mean_asks/self.mean_bids).rank(axis="rows", pct=True).rolling(window = 2).mean().apply(lambda x: zscore(x, nan_policy='omit'))
+        shift_3["factor"] = "funding_shift_3"
+
+        self.merge_factor(shift_3)

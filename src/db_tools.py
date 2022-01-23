@@ -58,20 +58,20 @@ def insert_dataframe(conn: sqlite3.Connection, table_name: str, df: pd.DataFrame
     if create_if_dont_exist:
         sql = f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'"
         cur.execute(sql)
-        if cur.fetchall()==[]:
+        if not cur.fetchall():
             print("Creating table")
             df_field_types = create_df_field_types_dict(df)
             create_table(conn, table_name, df_field_types, primary_key=primary_key)
 
-    inserted = 0
     for i, r in df.iterrows():
         sql = f"""INSERT OR REPLACE INTO {table_name} ({",".join(df.columns)})  
                     VALUES ({",".join(["?"]*df.shape[1])});
         """
+
+        # TODO: The kak sql statement above is kak, doen dit oor
         task = r.values
         try:
             cur.execute(sql, task)
-            inserted +=1
         except Exception as err:
             print(err)
 

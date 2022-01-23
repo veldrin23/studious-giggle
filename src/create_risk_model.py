@@ -8,15 +8,15 @@ import cvxpy as cvx
 
 def create_pca_factors(returns, svd_solver = "full", exposure_cutoff = .8):
     pca = PCA(n_components=returns.shape[1], svd_solver=svd_solver)
-    
-    first_fit = pca.fit(returns)  
+    try:
+        first_fit = pca.fit(returns)  
+        num_factors_exposure = sum(np.cumsum(first_fit.explained_variance_ratio_)<exposure_cutoff)
+        pca = PCA(n_components=num_factors_exposure, svd_solver=svd_solver)
+        pca.fit(returns)
+        return pca
 
-    num_factors_exposure = sum(np.cumsum(first_fit.explained_variance_ratio_)<exposure_cutoff)
-
-    pca = PCA(n_components=num_factors_exposure, svd_solver=svd_solver)
-    
-    pca.fit(returns)
-    return pca
+    except ValueError:
+        print(returns)
 
 
 def factor_betas(pca, factor_beta_indices, factor_beta_columns):
@@ -202,7 +202,6 @@ def predict_portfolio_risk(factor_betas, factor_cov_matrix, idiosyncratic_var_ma
 def create_risk_model(returns):
     
     risk_model = {}
-    
     pca = create_pca_factors(returns)
 
     num_factor_exposures = pca.n_components_
