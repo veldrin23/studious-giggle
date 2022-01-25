@@ -52,7 +52,7 @@ async def download_ticker_info(coin, conn, n):
         "bid_price": fill_series_with_na(bid_price, n),
         "bid_units": fill_series_with_na(bid_units, n)})
 
-        
+        df_out = df_out[~df_out["ask_price"].isna() & ~df_out["bid_price"].isna()]
 
         insert_dataframe(conn, df=df_out, table_name="bid_asks", primary_key=['symbol', "timestamp", "symbol_index"])
         save_mean_bid_asks(conn, df_out)

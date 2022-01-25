@@ -19,11 +19,6 @@ def run_alpha_factors_and_upload(coin_data, alpha_conn):
     alphas.combined_factors["date"] = alphas.combined_factors["date"].astype("str")
     insert_dataframe(alpha_conn, "alpha_factors", alphas.combined_factors, primary_key=["date", "factor", "symbol"])
 
-def drop_min_sec_minisec(df: pd.DataFrame) -> pd.DataFrame:
-    assert "date" in df.columns, "date not found in any of the fields"
-    date_field = pd.to_datetime(df.date)
-    df["date"] = pd.to_datetime(date_field).apply(lambda x: x.replace(minute=0, second=0, microsecond=0))
-
 
 def main():
 
@@ -83,8 +78,6 @@ def main():
     """
     cur.execute(sql, ('2022-01-01', *live_symbols))
     bid_asks = pd.DataFrame(cur.fetchall(), columns = cursor_colnames(cur))
-
-    # drop_min_sec_minisec(bid_asks)
 
     coin_data = bid_asks.merge(price_history, how = "right")
     coin_data["date"] = pd.to_datetime(coin_data["date"])
