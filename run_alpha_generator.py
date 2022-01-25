@@ -78,7 +78,8 @@ def main():
     """
     cur.execute(sql, ('2022-01-01', *live_symbols))
     bid_asks = pd.DataFrame(cur.fetchall(), columns = cursor_colnames(cur))
-
+    bid_asks.date = pd.to_datetime(bid_asks.date)
+    
     coin_data = bid_asks.merge(price_history, how = "right")
     coin_data["date"] = pd.to_datetime(coin_data["date"])
 
